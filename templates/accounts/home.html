@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}AcademiaBridge - Academia–Industry Skill Mapping & Placement Portal{% endblock %}
+
+{% block content %}
+<!-- Hero Section (Clean, Typographic, Human-Crafted) -->
+<section class="py-5 bg-white border-bottom">
+    <div class="container py-lg-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="badge badge-beginner text-muted mb-3 px-3 py-1">
+                    Academia–Industry Collaboration
+                </span>
+                <h1 class="display-5 fw-bold text-dark lh-sm mb-3">
+                    Connect academic learning with real industry requirements.
+                </h1>
+                <p class="lead text-muted fs-6 mb-4" style="max-width: 580px; line-height: 1.6;">
+                    A unified portal for students, faculty, and industry partners. Track student proficiencies, identify curriculum skill gaps, and coordinate internship and placement drives with transparent matching.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'internships:list' %}" class="btn btn-primary px-4">
+                        Explore Opportunities
+                    </a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-outline-secondary px-4">
+                        Create Account
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <!-- Clean Demo Credentials Panel -->
+                <div class="card p-3 border">
+                    <div class="card-body p-2">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="small fw-bold text-uppercase text-muted">Evaluation Demo Accounts</span>
+                            <span class="badge bg-light text-muted border">Ready to test</span>
+                        </div>
+                        <p class="small text-muted mb-3">Select any stakeholder to explore their tailored workflow:</p>
+
+                        <div class="d-flex flex-column gap-2">
+                            <div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small fw-bold text-dark">Student: Rahul Verma</div>
+                                    <div class="small text-muted" style="font-size: 0.75rem;"><code>rahul_cse</code> / <code>student123</code></div>
+                                </div>
+                                <span class="badge bg-white text-dark border">Skill Gap Demo</span>
+                            </div>
+
+                            <div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small fw-bold text-dark">Recruiter: Nexas Tech</div>
+                                    <div class="small text-muted" style="font-size: 0.75rem;"><code>nexas_tech</code> / <code>company123</code></div>
+                                </div>
+                                <span class="badge bg-white text-dark border">Hiring Desk</span>
+                            </div>
+
+                            <div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small fw-bold text-dark">Faculty: Dr. Ramesh Sharma</div>
+                                    <div class="small text-muted" style="font-size: 0.75rem;"><code>faculty_admin</code> / <code>admin123</code></div>
+                                </div>
+                                <span class="badge bg-white text-dark border">Analytics</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-sm w-100">
+                                Sign In with Demo Account
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Subtle Metrics Strip -->
+<section class="py-4 bg-light border-bottom">
+    <div class="container">
+        <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+                <div class="metric-value">{{ total_students }}</div>
+                <div class="metric-label">Enrolled Students</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="metric-value">{{ total_companies }}</div>
+                <div class="metric-label">Industry Partners</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="metric-value">{{ total_postings }}</div>
+                <div class="metric-label">Active Roles</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="metric-value">{{ total_placements }}</div>
+                <div class="metric-label">Placements Recorded</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Three Stakeholders Architecture -->
+<section class="py-5">
+    <div class="container">
+        <div class="mb-4">
+            <h5 class="fw-bold mb-1">System Stakeholders & Workflows</h5>
+            <p class="text-muted small mb-0">Designed to give each stakeholder explicit visibility into the recruitment lifecycle.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Student -->
+            <div class="col-md-4">
+                <div class="card h-100 p-3">
+                    <div class="card-body">
+                        <div class="mb-3 text-dark fs-4"><i class="bi bi-person-badge"></i></div>
+                        <h5 class="fw-bold mb-2">Students</h5>
+                        <p class="text-muted small mb-3">
+                            Maintain a verified technical skill profile. Upload resumes for automated competency extraction and view detailed gap analysis against live industry roles.
+                        </p>
+                        <ul class="text-muted small ps-3 mb-0">
+                            <li>Weighted skill mapping & proficiency levels</li>
+                            <li>Automated resume keyword extraction</li>
+                            <li>Personalized internship recommendations</li>
+                            <li>Application stage & interview tracking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Industry -->
+            <div class="col-md-4">
+                <div class="card h-100 p-3">
+                    <div class="card-body">
+                        <div class="mb-3 text-dark fs-4"><i class="bi bi-building"></i></div>
+                        <h5 class="fw-bold mb-2">Industry Recruiters</h5>
+                        <p class="text-muted small mb-3">
+                            Publish internship and placement openings with explicit skill expectations, minimum proficiency levels, and academic criteria.
+                        </p>
+                        <ul class="text-muted small ps-3 mb-0">
+                            <li>Role postings with required skill weights</li>
+                            <li>Applicant pipeline ranked by match percentage</li>
+                            <li>Interview scheduling with calendar notes</li>
+                            <li>Direct status updates to candidates</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faculty / Admin -->
+            <div class="col-md-4">
+                <div class="card h-100 p-3">
+                    <div class="card-body">
+                        <div class="mb-3 text-dark fs-4"><i class="bi bi-bar-chart"></i></div>
+                        <h5 class="fw-bold mb-2">Faculty & Administration</h5>
+                        <p class="text-muted small mb-3">
+                            Institutional oversight into student readiness, batch placement percentages, and market skill shortages to inform curriculum improvements.
+                        </p>
+                        <ul class="text-muted small ps-3 mb-0">
+                            <li>Batch-wide skill supply vs demand charts</li>
+                            <li>Department placement funnel tracking</li>
+                            <li>Talent pool search by CGPA and skill</li>
+                            <li>Historical placement and package data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Postings (Clean minimalist cards) -->
+<section class="py-5 bg-white border-top">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="fw-bold mb-1">Current Opportunities</h5>
+                <p class="text-muted small mb-0">Recent roles published by verified company partners</p>
+            </div>
+            <a href="{% url 'internships:list' %}" class="small fw-semibold text-decoration-none">
+                View all postings <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for posting in recent_postings %}
+                <div class="col-md-6">
+                    <div class="card p-3 h-100">
+                        <div class="card-body p-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">{{ posting.title }}</h6>
+                                    <div class="text-muted small">
+                                        {{ posting.company.company_name }} &bull; {{ posting.location }}
+                                    </div>
+                                </div>
+                                <span class="badge bg-light text-dark border">{{ posting.get_posting_type_display }}</span>
+                            </div>
+
+                            <p class="text-muted small mb-3">
+                                {{ posting.description|truncatewords:20 }}
+                            </p>
+
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                {% for req in posting.required_skills.all %}
+                                    <span class="badge bg-light text-secondary border">{{ req.skill.name }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="small fw-bold text-dark">{{ posting.stipend_or_salary }}</span>
+                                <a href="{% url 'internships:detail' posting.id %}" class="btn btn-outline-primary btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-4 text-muted small">No active postings at the moment.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

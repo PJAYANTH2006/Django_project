@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ posting.title }} - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Main Description -->
+        <div class="col-lg-8">
+            <div class="card p-4 border mb-4">
+                <div class="card-body p-1">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-light text-muted border mb-2">{{ posting.get_posting_type_display }}</span>
+                            <h3 class="fw-bold mb-1 text-dark">{{ posting.title }}</h3>
+                            <div class="text-muted small">
+                                <span class="fw-semibold text-dark">{{ posting.company.company_name }}</span> &bull; 
+                                {{ posting.location }} &bull; 
+                                Deadline: {{ posting.deadline|date:"d M Y" }}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="h5 fw-bold text-dark mb-0">{{ posting.stipend_or_salary }}</div>
+                            <div class="text-muted small">{{ posting.open_positions }} Positions</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-bold mb-2 text-dark">About the Role</h6>
+                    <p class="text-muted small mb-4" style="white-space: pre-line; line-height: 1.6;">{{ posting.description }}</p>
+
+                    {% if posting.responsibilities %}
+                        <h6 class="fw-bold mb-2 text-dark">Key Responsibilities</h6>
+                        <p class="text-muted small mb-4" style="white-space: pre-line; line-height: 1.6;">{{ posting.responsibilities }}</p>
+                    {% endif %}
+
+                    <h6 class="fw-bold mb-3 text-dark">Required Competencies</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Skill</th>
+                                    <th>Minimum Level</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in required_skills %}
+                                    <tr>
+                                        <td class="fw-bold text-dark">{{ req.skill.name }}</td>
+                                        <td><span class="badge bg-light text-dark border">{{ req.get_minimum_proficiency_display }}</span></td>
+                                        <td>
+                                            {% if req.is_mandatory %}
+                                                <span class="badge bg-white text-danger border">Mandatory</span>
+                                            {% else %}
+                                                <span class="badge bg-white text-muted border">Preferred</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6 class="fw-bold mb-2 text-dark">Eligibility Criteria</h6>
+                    <ul class="text-muted small ps-3 mb-0">
+                        <li>Minimum CGPA: <strong>{{ posting.min_cgpa }}</strong> / 10.00</li>
+                        <li>Eligible Branches: <strong>{{ posting.allowed_branches }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Assessment & Apply -->
+        <div class="col-lg-4">
+            <div class="card p-4 border mb-3">
+                <div class="card-body p-1">
+                    {% if user.is_authenticated and user.is_student %}
+                        <h6 class="fw-bold mb-3 text-dark">Eligibility Assessment</h6>
+
+                        <!-- Match Meter -->
+                        <div class="p-3 bg-light rounded border text-center mb-3">
+                            <div class="small text-muted mb-1">Your Match Score</div>
+                            <div class="score-number mb-1 {% if gap_info.match_percentage >= 70 %}text-success{% elif gap_info.match_percentage >= 50 %}text-primary{% else %}text-muted{% endif %}">
+                                {{ gap_info.match_percentage }}%
+                            </div>
+                            <span class="badge {{ eligibility.badge_class }}">{{ eligibility.status|title }}</span>
+                        </div>
+
+                        <p class="text-muted small mb-3">{{ eligibility.summary }}</p>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <a href="{% url 'skills:gap_analysis' posting.id %}" class="btn btn-outline-secondary btn-sm">
+                                View Skill Gap Report
+                            </a>
+                        </div>
+
+                        {% if existing_application %}
+                            <div class="p-3 border rounded bg-light text-center">
+                                <div class="small fw-bold text-dark mb-1">Application Submitted</div>
+                                <span class="badge bg-white text-dark border">{{ existing_application.get_status_display }}</span>
+                            </div>
+                        {% else %}
+                            {% if eligibility.can_apply %}
+                                <a href="{% url 'internships:apply' posting.id %}" class="btn btn-primary w-100 py-2" onclick="return confirm('Submit application?')">
+                                    Apply Now
+                                </a>
+                            {% else %}
+                                <button class="btn btn-outline-secondary w-100 py-2" disabled>
+                                    Ineligible to Apply
+                                </button>
+                            {% endif %}
+                        {% endif %}
+
+                    {% elif not user.is_authenticated %}
+                        <div class="text-center py-3">
+                            <h6 class="fw-bold text-dark mb-1">Check Your Eligibility</h6>
+                            <p class="text-muted small mb-3">Sign in as a student to see your calculated match percentage and apply.</p>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-sm px-4">Sign In</a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-2 text-muted small">
+                            Viewing in recruiter preview mode.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Company Info -->
+            <div class="card p-3 border">
+                <div class="card-body p-1">
+                    <span class="small fw-bold text-muted text-uppercase d-block mb-2">Hiring Organization</span>
+                    <h6 class="fw-bold mb-1 text-dark">{{ posting.company.company_name }}</h6>
+                    <div class="text-muted small mb-2">{{ posting.company.industry_type }} &bull; {{ posting.company.location }}</div>
+                    <p class="text-muted small mb-2">{{ posting.company.description|truncatewords:20 }}</p>
+                    {% if posting.company.website %}
+                        <a href="{{ posting.company.website }}" target="_blank" class="small text-decoration-none">
+                            Visit website <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

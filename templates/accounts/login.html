@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card p-4 border shadow-sm">
+                <div class="card-body p-1">
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-1">Sign in</h4>
+                        <p class="text-muted small">Access your student, recruiter, or faculty portal</p>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Username</label>
+                            <input type="text" name="username" id="usernameInput" class="form-control" placeholder="Enter username" required autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Password</label>
+                            <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Enter password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 mt-2">Sign In</button>
+                    </form>
+
+                    <!-- Fast Demo Switcher -->
+                    <div class="border-top pt-3 mt-4">
+                        <div class="small fw-semibold text-muted mb-2">Fast Autofill for Evaluation:</div>
+                        <div class="d-flex flex-column gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillDemo('rahul_cse', 'student123')">
+                                <span class="fw-bold text-dark">Student Demo:</span> <span class="text-muted">rahul_cse</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillDemo('nexas_tech', 'company123')">
+                                <span class="fw-bold text-dark">Recruiter Demo:</span> <span class="text-muted">nexas_tech</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-start py-1 px-2" onclick="fillDemo('faculty_admin', 'admin123')">
+                                <span class="fw-bold text-dark">Faculty Demo:</span> <span class="text-muted">faculty_admin</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4 pt-2 border-top">
+                        <span class="text-muted small">Need an account?</span>
+                        <a href="{% url 'accounts:register' %}" class="small fw-semibold text-decoration-none ms-1">Register here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillDemo(username, password) {
+    document.getElementById('usernameInput').value = username;
+    document.getElementById('passwordInput').value = password;
+}
+</script>
+{% endblock %}

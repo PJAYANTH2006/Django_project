@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card p-4 border shadow-sm">
+                <div class="card-body p-1">
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-1">Create an account</h4>
+                        <p class="text-muted small">Select your portal role to register</p>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-muted">Username</label>
+                                {{ form.username }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-muted">Email Address</label>
+                                {{ form.email }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-muted">Register As</label>
+                                {{ form.role }}
+                            </div>
+
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">Password</label>
+                                {{ form.password }}
+                            </div>
+
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">Confirm</label>
+                                {{ form.confirm_password }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 mt-4">Create Account</button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-2 border-top">
+                        <span class="text-muted small">Already have an account?</span>
+                        <a href="{% url 'accounts:login' %}" class="small fw-semibold text-decoration-none ms-1">Sign in</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

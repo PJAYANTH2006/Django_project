@@ -1,0 +1,35 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Database
+*.sqlite3
+*.sqlite3-journal
+
+# Media / Uploads
+media/resumes/*.pdf
+!media/resumes/.gitkeep
+
+# Static collected
+staticfiles/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

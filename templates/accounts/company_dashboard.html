@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Recruiter Desk - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Company Header -->
+    <div class="card p-4 border mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 56px; height: 56px;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1 text-dark">{{ company.company_name }}</h4>
+                        <div class="text-muted small">
+                            <span class="text-dark fw-semibold">{{ company.industry_type }}</span> &bull; 
+                            {{ company.location }}
+                            {% if company.is_verified %} &bull; <span class="text-success"><i class="bi bi-patch-check-fill me-1"></i>Verified Partner</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'internships:create_posting' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Post New Role
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Active Postings</div>
+                <div class="metric-value">{{ total_postings }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Total Applicants</div>
+                <div class="metric-value">{{ total_applicants }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Shortlisted</div>
+                <div class="metric-value">{{ shortlisted_applicants }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="metric-card">
+                <div class="metric-label">Interviews</div>
+                <div class="metric-value">{{ scheduled_interviews.count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Roles -->
+    <div class="card border mb-4">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+            <h6 class="fw-bold mb-0 text-dark">Active Opportunities & Candidate Pipeline</h6>
+            <a href="{% url 'internships:create_posting' %}" class="small text-muted text-decoration-none">Add new role</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Role Title</th>
+                            <th>Type</th>
+                            <th>Required Competencies</th>
+                            <th>Candidates</th>
+                            <th>Deadline</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in postings %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ post.title }}</div>
+                                    <div class="text-muted small">{{ post.location }} &bull; {{ post.stipend_or_salary }}</div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ post.get_posting_type_display }}</span></td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1" style="max-width: 280px;">
+                                        {% for req in post.required_skills.all %}
+                                            <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;">{{ req.skill.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {{ post.applications.count }} candidates
+                                    </span>
+                                </td>
+                                <td class="text-muted small">{{ post.deadline|date:"d M Y" }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'internships:manage_applicants' post.id %}" class="btn btn-sm btn-outline-primary py-1 px-3">
+                                        Review Applicants
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted small">No active postings published.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Interviews -->
+    {% if scheduled_interviews %}
+        <div class="card border">
+            <div class="card-header bg-transparent py-3">
+                <h6 class="fw-bold mb-0 text-dark">Upcoming Scheduled Interviews</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Role</th>
+                                <th>Scheduled Time</th>
+                                <th>Meeting Venue / Link</th>
+                                <th>Match</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview in scheduled_interviews %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ interview.student.user.get_full_name|default:interview.student.user.username }}</div>
+                                        <div class="text-muted small">{{ interview.student.branch }} &bull; CGPA: {{ interview.student.cgpa }}</div>
+                                    </td>
+                                    <td class="text-muted">{{ interview.posting.title }}</td>
+                                    <td class="small fw-semibold text-dark">{{ interview.interview_date|date:"D, d M Y - h:i A" }}</td>
+                                    <td>
+                                        {% if interview.interview_link_or_venue %}
+                                            <a href="{{ interview.interview_link_or_venue }}" target="_blank" class="small text-truncate d-inline-block text-decoration-none" style="max-width: 250px;">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>{{ interview.interview_link_or_venue }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ interview.match_percentage_at_apply }}%</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

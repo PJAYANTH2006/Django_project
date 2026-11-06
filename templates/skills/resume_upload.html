@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Resume Skill Parser - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <!-- Header -->
+            <div class="mb-4">
+                <h4 class="fw-bold mb-1 text-dark">Automated Resume Skill Extraction</h4>
+                <p class="text-muted small">Upload your resume to automatically detect programming languages, frameworks, and databases.</p>
+            </div>
+
+            <!-- Upload Box -->
+            <div class="card p-4 border mb-4">
+                <div class="card-body p-1">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Resume Document (.PDF or .TXT)</label>
+                            {{ form.resume_file }}
+                            <div class="form-text small">Text-based PDF files work best.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm px-4">
+                            Parse Resume
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Detection Results -->
+            {% if detected_skills %}
+                <div class="card p-4 border mb-4">
+                    <div class="card-body p-1">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Detected Competencies ({{ detected_skills|length }})</h6>
+                                <span class="text-muted small">Select the skills to import into your profile:</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="toggleSelectAll()">Select All New</button>
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="import_skills" value="1">
+
+                            <div class="row g-2 mb-3">
+                                {% for item in detected_skills %}
+                                    <div class="col-md-6">
+                                        <div class="p-2 border rounded bg-light d-flex align-items-center justify-content-between">
+                                            <div class="form-check mb-0">
+                                                <input class="form-check-input skill-checkbox" type="checkbox" name="selected_skills" value="{{ item.skill.id }}" id="skill_{{ item.skill.id }}" {% if not item.already_added %}checked{% else %}disabled{% endif %}>
+                                                <label class="form-check-label small fw-semibold text-dark ms-1" for="skill_{{ item.skill.id }}">
+                                                    {{ item.skill.name }}
+                                                </label>
+                                            </div>
+                                            <div>
+                                                {% if item.already_added %}
+                                                    <span class="badge bg-white text-muted border" style="font-size: 0.7rem;">In Profile</span>
+                                                {% else %}
+                                                    <span class="badge bg-white text-success border" style="font-size: 0.7rem;">New</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <a href="{% url 'skills:my_skills' %}" class="small text-muted text-decoration-none">Cancel</a>
+                                <button type="submit" class="btn btn-primary btn-sm px-4">
+                                    Import Selected Skills
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Extracted Text Snippet -->
+            {% if student.resume_extracted_text %}
+                <div class="card border p-3">
+                    <div class="card-body p-1">
+                        <span class="small fw-semibold text-muted d-block mb-1">Extracted Text Sample:</span>
+                        <div class="bg-light p-2 rounded small text-muted" style="max-height: 120px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.75rem;">
+                            {{ student.resume_extracted_text|truncatechars:500 }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.skill-checkbox:not(:disabled)');
+    const anyUnchecked = Array.from(checkboxes).some(cb => !cb.checked);
+    checkboxes.forEach(cb => cb.checked = anyUnchecked);
+}
+</script>
+{% endblock %}

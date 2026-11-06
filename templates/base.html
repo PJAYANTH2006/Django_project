@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Academia–Industry Collaboration Portal{% endblock %}</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Clean Aesthetic Theme CSS -->
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Minimalist Clean Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-clean sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'accounts:home' %}">
+                <i class="bi bi-mortarboard text-dark fs-5"></i>
+                <span>AcademiaBridge</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'internships:list' %}">Opportunities</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'skills:explore' %}">Skill Catalog</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_student %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'skills:my_skills' %}">My Skills</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'skills:resume_upload' %}">Resume Parser</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'internships:my_applications' %}">Applications</a>
+                            </li>
+                        {% elif user.is_company %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'accounts:dashboard' %}">Overview</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'internships:company_postings' %}">Postings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'internships:create_posting' %}">Post Role</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'analytics:student_readiness' %}">Talent Pool</a>
+                            </li>
+                        {% elif user.is_faculty or user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'analytics:faculty_overview' %}">Institutional Analytics</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'analytics:student_readiness' %}">Student Readiness</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if user.is_authenticated %}
+                        <!-- Notifications -->
+                        <li class="nav-item dropdown me-2">
+                            <a class="nav-link position-relative p-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                                <i class="bi bi-bell text-secondary fs-5"></i>
+                                {% if unread_notifications_count > 0 %}
+                                    <span class="position-absolute top-1 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                        <span class="visually-hidden">New alerts</span>
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border" style="width: 320px;">
+                                <li class="dropdown-header d-flex justify-content-between align-items-center py-2">
+                                    <span class="fw-bold text-dark">Notifications</span>
+                                    {% if unread_notifications_count > 0 %}
+                                        <a href="{% url 'notifications:mark_all_read' %}" class="text-decoration-none text-muted small">Mark read</a>
+                                    {% endif %}
+                                </li>
+                                <li><hr class="dropdown-divider my-0"></li>
+                                {% if recent_notifications %}
+                                    {% for notif in recent_notifications %}
+                                        <li>
+                                            <a class="dropdown-item py-2 border-bottom {% if not notif.is_read %}bg-light{% endif %}" href="{% url 'notifications:mark_read' notif.id %}">
+                                                <div class="small fw-semibold text-truncate">{{ notif.title }}</div>
+                                                <div class="text-muted text-truncate small" style="font-size: 0.75rem;">{{ notif.message }}</div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">{{ notif.created_at|timesince }} ago</div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                    <li><a class="dropdown-item text-center small text-secondary py-2" href="{% url 'notifications:list' %}">All Notifications</a></li>
+                                {% else %}
+                                    <li class="p-3 text-center text-muted small">No notifications</li>
+                                {% endif %}
+                            </ul>
+                        </li>
+
+                        <!-- User Profile Menu -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 p-1" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 0.8rem; font-weight: 600;">
+                                    {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                </div>
+                                <span class="d-none d-sm-inline small fw-semibold text-dark">{{ user.first_name|default:user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border">
+                                <li class="dropdown-header">
+                                    <div class="fw-bold text-dark">{{ user.username }}</div>
+                                    <div class="text-muted small">{{ user.get_role_display }}</div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item small" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2 text-muted"></i>Profile Settings</a></li>
+                                <li><a class="dropdown-item small text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link small fw-semibold" href="{% url 'accounts:login' %}">Sign In</a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-primary btn-sm px-3" href="{% url 'accounts:register' %}">Get Started</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages Container -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'secondary' }} alert-dismissible fade show border py-2 px-3 small" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Minimalist Footer -->
+    <footer class="footer-clean mt-5">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <span class="fw-bold text-dark">AcademiaBridge</span> &mdash; Portal for Academia–Industry Collaboration
+                </div>
+                <div class="small text-muted">
+                    Skill Mapping &bull; Gap Analysis &bull; Internship & Placement Tracking
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

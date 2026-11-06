@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Candidate Status - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">Update Candidate Status</h4>
+                        <a href="{% url 'internships:manage_applicants' application.posting.id %}" class="btn btn-sm btn-outline-secondary">Back</a>
+                    </div>
+
+                    <!-- Candidate Summary -->
+                    <div class="p-3 bg-light rounded-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ application.student.user.get_full_name|default:application.student.user.username }}</h6>
+                                <div class="text-muted small">{{ application.student.branch }} • CGPA: {{ application.student.cgpa }}</div>
+                                <div class="text-muted small">Applying for: <strong>{{ application.posting.title }}</strong></div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success-subtle text-success fs-6 border border-success-subtle">
+                                    {{ application.match_percentage_at_apply }}% Match
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Application Hiring Stage</label>
+                            {{ form.status }}
+                        </div>
+
+                        <div class="p-3 border rounded-3 mb-3 bg-white">
+                            <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-calendar-event me-2"></i>Interview Scheduling Details (Optional)</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Date & Time</label>
+                                    {{ form.interview_date }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Interview Mode</label>
+                                    {{ form.interview_mode }}
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <label class="form-label small fw-semibold">Meeting Link (Google Meet / Teams) or Campus Venue</label>
+                                    {{ form.interview_link_or_venue }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Company Feedback / Review Notes</label>
+                            {{ form.company_feedback }}
+                            <div class="form-text small">This feedback will be visible to the student in their tracking dashboard.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'internships:manage_applicants' application.posting.id %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                <i class="bi bi-check-circle me-1"></i> Save & Notify Candidate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

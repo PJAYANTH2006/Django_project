@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Opportunities - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Search / Filter -->
+    <div class="card p-3 border mb-4">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-md-7">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by role, company, skill (e.g. Python, React), or location...">
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">All Opportunity Types</option>
+                    <option value="INTERNSHIP" {% if posting_type == 'INTERNSHIP' %}selected{% endif %}>Internships</option>
+                    <option value="FULL_TIME" {% if posting_type == 'FULL_TIME' %}selected{% endif %}>Full-Time Roles</option>
+                    <option value="PLACEMENT" {% if posting_type == 'PLACEMENT' %}selected{% endif %}>Campus Placement Drives</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-dark">Open Opportunities ({{ postings_with_analysis|length }})</h5>
+        {% if user.is_student %}
+            <span class="text-muted small">Ranked by your profile skill match</span>
+        {% endif %}
+    </div>
+
+    <!-- Opportunities Grid -->
+    <div class="row g-3">
+        {% for item in postings_with_analysis %}
+            <div class="col-md-6">
+                <div class="card p-3 h-100 d-flex flex-column justify-content-between border">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">{{ item.posting.title }}</h6>
+                                <div class="text-muted small">
+                                    {{ item.posting.company.company_name }} &bull; {{ item.posting.location }}
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-dark border">{{ item.posting.get_posting_type_display }}</span>
+                        </div>
+
+                        <!-- Match indicator for students -->
+                        {% if user.is_student and item.gap_info %}
+                            <div class="d-flex align-items-center justify-content-between p-2 my-2 bg-light rounded border">
+                                <span class="small text-muted">Skill Match: <strong class="text-dark">{{ item.gap_info.match_percentage }}%</strong></span>
+                                <span class="badge {{ item.eligibility.badge_class }}">{{ item.eligibility.status|title }}</span>
+                            </div>
+                        {% endif %}
+
+                        <p class="text-muted small my-2">
+                            {{ item.posting.description|truncatewords:20 }}
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-1 my-3">
+                            {% for req in item.posting.required_skills.all %}
+                                <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;">{{ req.skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <div>
+                            <span class="small fw-bold text-dark">{{ item.posting.stipend_or_salary }}</span>
+                            <div class="text-muted" style="font-size: 0.72rem;">Min CGPA: {{ item.posting.min_cgpa }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {% if user.is_student %}
+                                <a href="{% url 'skills:gap_analysis' item.posting.id %}" class="btn btn-outline-secondary btn-sm py-1 px-2" style="font-size: 0.8rem;">
+                                    Gap Report
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'internships:detail' item.posting.id %}" class="btn btn-primary btn-sm py-1 px-3" style="font-size: 0.8rem;">
+                                View Role
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5 text-muted small">
+                No opportunities match your filter query.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

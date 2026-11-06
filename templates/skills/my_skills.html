@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}My Skills - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h4 class="fw-bold mb-1 text-dark">Technical Skill Mapping</h4>
+            <p class="text-muted small mb-0">Record your technical competencies and proficiency levels</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'skills:resume_upload' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-file-earmark-text me-1"></i> Extract from Resume
+            </a>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addSkillModal">
+                <i class="bi bi-plus-lg me-1"></i> Add Skill
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main: Mapped Skills Grid -->
+        <div class="col-lg-8">
+            <div class="card border">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+                    <h6 class="fw-bold mb-0 text-dark">Declared Competencies ({{ student_skills.count }})</h6>
+                    <div class="small text-muted">
+                        <span class="badge badge-advanced me-1">Advanced (3 pts)</span>
+                        <span class="badge badge-intermediate me-1">Intermediate (2 pts)</span>
+                        <span class="badge badge-beginner">Beginner (1 pt)</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-3">
+                    <div class="row g-2">
+                        {% for ss in student_skills %}
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-white d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark small mb-1">{{ ss.skill.name }}</div>
+                                        <div>
+                                            {% if ss.proficiency == 'ADVANCED' %}
+                                                <span class="badge badge-advanced">Advanced</span>
+                                            {% elif ss.proficiency == 'INTERMEDIATE' %}
+                                                <span class="badge badge-intermediate">Intermediate</span>
+                                            {% else %}
+                                                <span class="badge badge-beginner">Beginner</span>
+                                            {% endif %}
+                                            {% if ss.verified %}
+                                                <span class="badge bg-light text-muted border ms-1" style="font-size: 0.7rem;"><i class="bi bi-check me-1"></i>Verified</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'skills:delete_skill' ss.id %}" class="text-muted small p-1" title="Remove" onclick="return confirm('Remove {{ ss.skill.name }}?')">
+                                            <i class="bi bi-x-lg"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12 text-center py-5 text-muted small">
+                                No skills added yet. Click "Add Skill" or "Extract from Resume" to begin.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Projects & Certifications -->
+        <div class="col-lg-4">
+            <!-- Projects -->
+            <div class="card border mb-3">
+                <div class="card-header bg-transparent py-3">
+                    <h6 class="fw-bold mb-0 text-dark">Projects ({{ projects.count }})</h6>
+                </div>
+                <div class="card-body p-3">
+                    {% for project in projects %}
+                        <div class="p-2 border rounded bg-light mb-2">
+                            <div class="fw-bold small text-dark">{{ project.title }}</div>
+                            <div class="text-muted small" style="font-size: 0.75rem;">{{ project.description|truncatewords:12 }}</div>
+                            <div class="badge bg-white text-secondary border mt-1" style="font-size: 0.7rem;">{{ project.technologies_used }}</div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small mb-0">No projects added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Advice -->
+            <div class="card border">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-2 text-dark">Mapping Guidelines</h6>
+                    <p class="text-muted small mb-2">
+                        Recruiter matching algorithms calculate your eligibility score using weighted proficiency:
+                    </p>
+                    <ul class="text-muted small ps-3 mb-0" style="font-size: 0.78rem;">
+                        <li class="mb-1"><strong>Beginner:</strong> Classroom concepts & syntax</li>
+                        <li class="mb-1"><strong>Intermediate:</strong> Built functional projects</li>
+                        <li class="mb-1"><strong>Advanced:</strong> Production-ready / deployment experience</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Skill -->
+<div class="modal fade" id="addSkillModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border">
+            <div class="modal-header border-bottom py-3">
+                <h6 class="modal-title fw-bold text-dark" id="addSkillModalLabel">Add Skill to Profile</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'skills:add_skill' %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Select Skill</label>
+                        {{ form.skill }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Self-Reported Proficiency</label>
+                        {{ form.proficiency }}
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save to Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

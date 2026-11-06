@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}My Student Profile - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Left: Edit Profile Form -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="card-body">
+                    <h4 class="fw-bold mb-3"><i class="bi bi-person-gear text-primary me-2"></i>Academic & Profile Details</h4>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Registration / Roll No</label>
+                                {{ form.registration_no }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Current CGPA</label>
+                                {{ form.cgpa }}
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Academic Branch / Department</label>
+                                {{ form.branch }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Graduation Year</label>
+                                {{ form.graduation_year }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Contact Phone</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">GitHub Profile URL</label>
+                                {{ form.github_url }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">LinkedIn Profile URL</label>
+                                {{ form.linkedin_url }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Professional Bio / Career Summary</label>
+                                {{ form.bio }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Resume Document (.PDF or .TXT)</label>
+                                {{ form.resume }}
+                                {% if student.resume %}
+                                    <div class="mt-2 small text-muted">
+                                        Current resume: <a href="{{ student.resume.url }}" target="_blank" class="fw-bold"><i class="bi bi-file-earmark-arrow-down me-1"></i>Download Resume</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold mt-4">
+                            <i class="bi bi-check2 me-1"></i> Save Profile Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Projects & Certifications -->
+        <div class="col-lg-5">
+            <!-- Projects Card -->
+            <div class="card border-0 shadow-sm p-3 mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-code-square text-success me-2"></i>Projects</h5>
+                        <a href="{% url 'skills:my_skills' %}" class="btn btn-sm btn-outline-success"><i class="bi bi-plus-lg"></i> Add</a>
+                    </div>
+                    {% for project in projects %}
+                        <div class="p-2 border rounded mb-2 bg-light">
+                            <div class="fw-bold">{{ project.title }}</div>
+                            <div class="text-muted small mb-1">{{ project.description|truncatewords:15 }}</div>
+                            <div class="badge bg-secondary-subtle text-secondary small">{{ project.technologies_used }}</div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small">No projects added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Certifications Card -->
+            <div class="card border-0 shadow-sm p-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-award text-warning me-2"></i>Certifications</h5>
+                        <a href="{% url 'skills:my_skills' %}" class="btn btn-sm btn-outline-warning text-dark"><i class="bi bi-plus-lg"></i> Add</a>
+                    </div>
+                    {% for cert in certifications %}
+                        <div class="p-2 border rounded mb-2 bg-light">
+                            <div class="fw-bold">{{ cert.title }}</div>
+                            <div class="text-muted small">{{ cert.issuing_organization }} {% if cert.issue_date %}• {{ cert.issue_date|date:"M Y" }}{% endif %}</div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small">No certifications added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Company Profile Settings - AcademiaBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="card-body">
+                    <h4 class="fw-bold mb-3"><i class="bi bi-building-gear text-primary me-2"></i>Company Profile Settings</h4>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Company Name</label>
+                                {{ form.company_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Industry Domain</label>
+                                {{ form.industry_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Official Website</label>
+                                {{ form.website }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Location / Headquarters</label>
+                                {{ form.location }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Recruiting Contact Email</label>
+                                {{ form.contact_email }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">About Company</label>
+                                {{ form.description }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold mt-4">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
