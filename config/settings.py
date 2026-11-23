@@ -5,12 +5,19 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-portal-smart-automation-academia-industry-platform-2026'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-portal-smart-automation-academia-industry-platform-2026')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://*.railway.app',
+    'http://127.0.0.1',
+    'http://localhost',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -31,6 +38,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,6 +76,15 @@ DATABASES = {
     }
 }
 
+# Use PostgreSQL if DATABASE_URL is provided in environment (e.g. Render / Railway)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    try:
+        import dj_database_url
+        DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    except Exception:
+        pass
+
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -94,6 +111,15 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files (Resumes, Profile pictures, etc.)
 MEDIA_URL = '/media/'
