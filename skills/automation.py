@@ -122,19 +122,23 @@ def check_placement_eligibility(student_profile, posting, match_percentage):
 
     if cgpa_eligible and branch_eligible and skill_ready:
         status = 'ELIGIBLE'
+        status_display = 'Eligible'
         badge_class = 'bg-success'
         summary = 'Eligible to Apply: You meet all academic, branch, and skill criteria.'
     elif cgpa_eligible and branch_eligible and not skill_ready:
         status = 'SKILLS_IMPROVEMENT_REQUIRED'
+        status_display = 'Skills Improvement Required'
         badge_class = 'bg-warning text-dark'
         summary = f'Skills Improvement Required: You meet academic criteria, but your skill match ({match_percentage}%) is below the recommended 50% readiness threshold.'
     else:
         status = 'NOT_ELIGIBLE'
+        status_display = 'Not Eligible'
         badge_class = 'bg-danger'
         summary = f"Not Eligible: {'; '.join(reasons)}"
 
     return {
         'status': status,
+        'status_display': status_display,
         'badge_class': badge_class,
         'summary': summary,
         'cgpa_eligible': cgpa_eligible,

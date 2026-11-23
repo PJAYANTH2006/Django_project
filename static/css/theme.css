@@ -86,6 +86,14 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
 }
 
+/* Elevated Dropdown Menu */
+.dropdown-menu {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+    z-index: 1060;
+}
+
 /* Refined Cards */
 .card {
     background-color: var(--bg-surface);

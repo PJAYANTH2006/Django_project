@@ -257,5 +257,15 @@ def my_applications_view(request):
     if not request.user.is_student:
         return redirect('accounts:dashboard')
 
-    applications = Application.objects.filter(student=request.user.student_profile).select_related('posting__company').order_by('-applied_date')
-    return render(request, 'internships/my_applications.html', {'applications': applications})
+    student_profile = request.user.student_profile
+    applications_qs = Application.objects.filter(student=student_profile).select_related('posting__company').order_by('-applied_date')
+    
+    apps_with_live = []
+    for app in applications_qs:
+        gap = calculate_skill_gap(student_profile, app.posting)
+        apps_with_live.append({
+            'app': app,
+            'current_match': gap['match_percentage']
+        })
+
+    return render(request, 'internships/my_applications.html', {'applications': apps_with_live})

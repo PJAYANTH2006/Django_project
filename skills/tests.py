@@ -78,14 +78,30 @@ class SmartAutomationEngineTestCase(TestCase):
 
         # CGPA 8.5 >= 7.0 (passed), Branch CSE in allowed (passed), Match 66.7% >= 50% (passed)
         self.assertEqual(elig['status'], 'ELIGIBLE')
+        self.assertEqual(elig['status_display'], 'Eligible')
         self.assertTrue(elig['can_apply'])
+
+        # Test skills improvement required status_display
+        elig_low_skill = check_placement_eligibility(self.student_profile, self.posting, Decimal('40.0'))
+        self.assertEqual(elig_low_skill['status'], 'SKILLS_IMPROVEMENT_REQUIRED')
+        self.assertEqual(elig_low_skill['status_display'], 'Skills Improvement Required')
 
         # Test ineligible CGPA
         self.student_profile.cgpa = Decimal('6.00')
         self.student_profile.save()
         elig_low_cgpa = check_placement_eligibility(self.student_profile, self.posting, gap['match_percentage'])
         self.assertEqual(elig_low_cgpa['status'], 'NOT_ELIGIBLE')
+        self.assertEqual(elig_low_cgpa['status_display'], 'Not Eligible')
         self.assertFalse(elig_low_cgpa['cgpa_eligible'])
+
+    def test_proficiency_level_gap_detection(self):
+        # Give student Django as Beginner (posting requires Intermediate)
+        StudentSkill.objects.create(student=self.student_profile, skill=self.skill_django, proficiency='BEGINNER')
+        gap = calculate_skill_gap(self.student_profile, self.posting)
+        # All 3 skills are in profile, but Django is below required level
+        self.assertEqual(gap['missing_count'], 0)
+        self.assertEqual(gap['proficiency_gap_count'], 1)
+        self.assertGreater(gap['match_percentage'], 70.0)
 
     def test_resume_skill_extraction(self):
         sample_resume_text = """

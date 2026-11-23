@@ -1,17 +1,35 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 from django.db.models import Count, Avg, Q
 from django.http import JsonResponse
 from accounts.models import StudentProfile, CompanyProfile, FacultyProfile
 from skills.models import Skill, StudentSkill, SkillCategory
 from internships.models import InternshipPosting, PostingRequiredSkill, Application, PlacementRecord
+from analytics.models import CampusNotice
 
 
 @login_required
 def faculty_overview_view(request):
     if not (request.user.is_faculty or request.user.is_superuser):
         return redirect('accounts:dashboard')
+
+    if request.method == 'POST' and 'create_notice' in request.POST:
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+        notice_type = request.POST.get('notice_type', 'GENERAL')
+        if title and content:
+            CampusNotice.objects.create(
+                posted_by=request.user,
+                title=title,
+                content=content,
+                notice_type=notice_type
+            )
+            messages.success(request, f"Notice '{title}' published successfully.")
+            return redirect('analytics:faculty_overview')
+        else:
+            messages.error(request, "Please provide both a notice title and content.")
 
     total_students = StudentProfile.objects.count()
     total_companies = CompanyProfile.objects.count()
@@ -59,6 +77,9 @@ def faculty_overview_view(request):
     # Recent placements
     recent_placements = PlacementRecord.objects.select_related('student__user', 'company').order_by('-offer_date')[:5]
 
+    # Campus Notices
+    notices = CampusNotice.objects.filter(is_active=True).order_by('-created_at')[:6]
+
     context = {
         'total_students': total_students,
         'total_companies': total_companies,
@@ -72,6 +93,7 @@ def faculty_overview_view(request):
         'status_counts': status_counts,
         'branch_stats': branch_stats,
         'recent_placements': recent_placements,
+        'notices': notices,
     }
     return render(request, 'analytics/faculty_overview.html', context)
 

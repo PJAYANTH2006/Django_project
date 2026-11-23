@@ -50,8 +50,8 @@
                         <!-- Match indicator for students -->
                         {% if user.is_student and item.gap_info %}
                             <div class="d-flex align-items-center justify-content-between p-2 my-2 bg-light rounded border">
-                                <span class="small text-muted">Skill Match: <strong class="text-dark">{{ item.gap_info.match_percentage }}%</strong></span>
-                                <span class="badge {{ item.eligibility.badge_class }}">{{ item.eligibility.status|title }}</span>
+                                <span class="small text-muted">Skill Match: <strong class="text-dark">{{ item.gap_info.match_percentage|floatformat:1 }}%</strong></span>
+                                <span class="badge {{ item.eligibility.badge_class }}">{{ item.eligibility.status_display|default:item.eligibility.status }}</span>
                             </div>
                         {% endif %}
 

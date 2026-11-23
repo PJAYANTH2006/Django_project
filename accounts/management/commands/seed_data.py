@@ -467,6 +467,25 @@ class Command(BaseCommand):
             }
         )
 
+        # 7. Campus Notices
+        from analytics.models import CampusNotice
+        notices_data = [
+            ('Campus Placement Drive: Nexas Technologies & DataStride AI',
+             'Nexas Technologies and DataStride AI have published summer internship and full-time hiring drives. Eligible candidates with >= 6.5 CGPA can apply through the portal.',
+             'PLACEMENT'),
+            ('Semester Examination Schedule Released',
+             'The final end-semester theoretical and laboratory examination schedules for all engineering branches have been published on the university portal.',
+             'ACADEMIC'),
+            ('Faculty Development Programme (FDP) Registration',
+             'Department of Computer Science is conducting a 3-day workshop on Generative AI and Microservices. Interested faculty and student coordinators may enroll.',
+             'WORKSHOP'),
+        ]
+        for n_title, n_content, n_type in notices_data:
+            CampusNotice.objects.get_or_create(
+                title=n_title,
+                defaults={'posted_by': faculty_user, 'content': n_content, 'notice_type': n_type}
+            )
+
         self.stdout.write(self.style.SUCCESS('Successfully seeded database with users, skills, postings, and applications!'))
         self.stdout.write(self.style.SUCCESS('Demo Credentials:'))
         self.stdout.write(self.style.WARNING('  Faculty/Admin: faculty_admin / admin123'))

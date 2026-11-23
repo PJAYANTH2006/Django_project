@@ -9,7 +9,7 @@ from skills.automation import (
     extract_skills_from_text,
     extract_text_from_pdf_file
 )
-from internships.models import InternshipPosting
+from internships.models import InternshipPosting, Application
 from accounts.models import StudentProfile
 
 
@@ -151,9 +151,11 @@ def gap_analysis_view(request, posting_id):
     Shows exact gaps and roadmap resources.
     """
     posting = get_object_or_404(InternshipPosting, pk=posting_id)
+    existing_application = None
     
     if request.user.is_student:
         student_profile = request.user.student_profile
+        existing_application = Application.objects.filter(posting=posting, student=student_profile).first()
     else:
         # If faculty or company, optionally view as a demo with first student
         student_profile = StudentProfile.objects.first()
@@ -166,10 +168,18 @@ def gap_analysis_view(request, posting_id):
         'student': student_profile,
         'gap': gap_data,
         'eligibility': eligibility_data,
+        'existing_application': existing_application,
     }
     return render(request, 'skills/gap_analysis.html', context)
 
 
 def explore_skills_view(request):
     categories = SkillCategory.objects.prefetch_related('skills__resources').all()
-    return render(request, 'skills/explore.html', {'categories': categories})
+    student_skill_ids = set()
+    if request.user.is_authenticated and request.user.is_student:
+        student_skill_ids = set(request.user.student_profile.skills.values_list('skill_id', flat=True))
+
+    return render(request, 'skills/explore.html', {
+        'categories': categories,
+        'student_skill_ids': student_skill_ids,
+    })

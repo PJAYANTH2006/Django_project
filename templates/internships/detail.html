@@ -83,9 +83,9 @@
                         <div class="p-3 bg-light rounded border text-center mb-3">
                             <div class="small text-muted mb-1">Your Match Score</div>
                             <div class="score-number mb-1 {% if gap_info.match_percentage >= 70 %}text-success{% elif gap_info.match_percentage >= 50 %}text-primary{% else %}text-muted{% endif %}">
-                                {{ gap_info.match_percentage }}%
+                                {{ gap_info.match_percentage|floatformat:1 }}%
                             </div>
-                            <span class="badge {{ eligibility.badge_class }}">{{ eligibility.status|title }}</span>
+                            <span class="badge {{ eligibility.badge_class }}">{{ eligibility.status_display|default:eligibility.status }}</span>
                         </div>
 
                         <p class="text-muted small mb-3">{{ eligibility.summary }}</p>
@@ -103,9 +103,9 @@
                             </div>
                         {% else %}
                             {% if eligibility.can_apply %}
-                                <a href="{% url 'internships:apply' posting.id %}" class="btn btn-primary w-100 py-2" onclick="return confirm('Submit application?')">
+                                <button type="button" class="btn btn-primary w-100 py-2" data-bs-toggle="modal" data-bs-target="#confirmApplicationModal">
                                     Apply Now
-                                </a>
+                                </button>
                             {% else %}
                                 <button class="btn btn-outline-secondary w-100 py-2" disabled>
                                     Ineligible to Apply
@@ -144,4 +144,60 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Confirm Application Submission -->
+{% if user.is_authenticated and user.is_student %}
+<div class="modal fade" id="confirmApplicationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border">
+            <div class="modal-header border-bottom py-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-send text-primary me-2"></i>Confirm Application Submission</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <div class="small text-muted">Role & Company:</div>
+                    <div class="fw-bold text-dark fs-6">{{ posting.title }}</div>
+                    <div class="text-muted small">{{ posting.company.company_name }} &bull; {{ posting.location }}</div>
+                </div>
+
+                <div class="p-3 border rounded bg-light mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">Candidate:</span>
+                        <span class="small fw-semibold text-dark">{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">Academic Record:</span>
+                        <span class="small text-dark">{{ user.student_profile.branch }} (CGPA: {{ user.student_profile.cgpa }})</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">Calculated Skill Match:</span>
+                        <span class="badge bg-light text-dark border fw-bold">{{ gap_info.match_percentage|floatformat:1 }}%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">Resume:</span>
+                        {% if user.student_profile.resume %}
+                            <a href="{{ user.student_profile.resume.url }}" target="_blank" class="small text-decoration-none">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>Attached
+                            </a>
+                        {% else %}
+                            <span class="small text-warning">None uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <p class="small text-muted mb-0">
+                    Your profile and current skill readiness snapshot will be shared with the recruiter.
+                </p>
+            </div>
+            <div class="modal-footer border-top py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'internships:apply' posting.id %}" class="btn btn-primary btn-sm px-4">
+                    Confirm & Submit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

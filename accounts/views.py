@@ -8,6 +8,7 @@ from internships.models import InternshipPosting, Application, PlacementRecord
 from skills.models import StudentSkill, Skill, StudentProject, StudentCertification
 from skills.automation import get_recommended_postings_for_student, calculate_skill_gap
 from notifications.models import Notification
+from analytics.models import CampusNotice
 
 
 def home_view(request):
@@ -50,8 +51,9 @@ def login_view(request):
 
 
 def logout_view(request):
-    logout(request)
-    messages.info(request, "You have been logged out successfully.")
+    if request.method in ['POST', 'GET']:
+        logout(request)
+        messages.info(request, "You have been logged out successfully.")
     return redirect('accounts:login')
 
 
@@ -127,11 +129,15 @@ def dashboard_view(request):
     # Smart Recommendations Engine
     recommendations = get_recommended_postings_for_student(student_profile, limit=6)
 
+    # Campus Notices
+    campus_notices = CampusNotice.objects.filter(is_active=True).order_by('-created_at')[:3]
+
     context = {
         'student': student_profile,
         'student_skills': student_skills,
         'applications': applications,
         'recommendations': recommendations,
+        'campus_notices': campus_notices,
         'total_skills': student_skills.count(),
         'total_applications': applications.count(),
         'projects': student_profile.projects.all(),

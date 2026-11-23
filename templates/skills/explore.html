@@ -5,37 +5,65 @@
 {% block content %}
 <div class="container py-4">
     <div class="mb-4 text-center">
-        <h3 class="fw-bold">Technical Skill Catalog & Learning Resources</h3>
-        <p class="text-muted">Explore industry competencies, official documentations, free guided courses, and capstone project ideas.</p>
+        <h4 class="fw-bold mb-1 text-dark">Technical Skill Catalog & Learning Resources</h4>
+        <p class="text-muted small">Explore industry competencies, documentation, free guided courses, and project ideas</p>
     </div>
 
-    <div class="row g-4">
+    <!-- Live Search Bar -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-7 col-lg-6">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="skillSearchInput" class="form-control border-start-0" placeholder="Filter skills in real-time (e.g. Python, Docker, React, SQL)..." onkeyup="filterSkills()" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3" id="categoriesContainer">
         {% for cat in categories %}
-            <div class="col-lg-6">
-                <div class="card border-0 shadow-sm p-3 h-100">
-                    <div class="card-body">
-                        <h5 class="fw-bold text-primary mb-3">
-                            <i class="bi {{ cat.icon }} me-2"></i>{{ cat.name }}
-                        </h5>
-                        <div class="row g-2">
+            <div class="col-lg-6 category-block">
+                <div class="card border h-100 p-3">
+                    <div class="card-body p-1">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi {{ cat.icon }} text-dark fs-5"></i>
+                            <h6 class="fw-bold text-dark mb-0 category-title">{{ cat.name }}</h6>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
                             {% for skill in cat.skills.all %}
-                                <div class="col-12">
-                                    <div class="p-2 border rounded bg-white">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="fw-bold text-dark">{{ skill.name }}</span>
-                                            <span class="text-muted small">{{ skill.resources.count }} resources</span>
+                                <div class="p-2 border rounded bg-white skill-item" data-skill-name="{{ skill.name|lower }}" data-aliases="{{ skill.aliases|lower }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold text-dark small skill-title">{{ skill.name }}</span>
+                                            {% if user.is_authenticated and user.is_student %}
+                                                {% if skill.id in student_skill_ids %}
+                                                    <span class="badge bg-light text-success border" style="font-size: 0.68rem;">
+                                                        <i class="bi bi-check me-1"></i>In Profile
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
                                         </div>
-                                        <p class="text-secondary small mb-2">{{ skill.description }}</p>
-                                        {% if skill.resources.all %}
-                                            <div class="d-flex flex-wrap gap-1">
-                                                {% for r in skill.resources.all %}
-                                                    <a href="{{ r.resource_url }}" target="_blank" class="badge bg-light text-dark border text-decoration-none">
-                                                        <i class="bi bi-link-45deg"></i> {{ r.title|truncatechars:28 }}
-                                                    </a>
-                                                {% endfor %}
-                                            </div>
+
+                                        {% if user.is_authenticated and user.is_student %}
+                                            {% if skill.id not in student_skill_ids %}
+                                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.72rem;" onclick="openQuickAdd('{{ skill.id }}', '{{ skill.name|escapejs }}')">
+                                                    <i class="bi bi-plus-lg me-1"></i>Add
+                                                </button>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
+
+                                    <p class="text-muted small mb-2" style="font-size: 0.78rem;">{{ skill.description }}</p>
+
+                                    {% if skill.resources.all %}
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for r in skill.resources.all %}
+                                                <a href="{{ r.resource_url }}" target="_blank" class="badge bg-light text-dark border text-decoration-none py-1 px-2" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-link-45deg me-1"></i>{{ r.title|truncatechars:32 }}
+                                                </a>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             {% endfor %}
                         </div>
@@ -44,5 +72,94 @@
             </div>
         {% endfor %}
     </div>
+
+    <div id="noMatchMessage" class="text-center py-5 text-muted small d-none">
+        <i class="bi bi-search fs-3 d-block mb-2"></i>
+        No technical skills found matching your search term.
+    </div>
 </div>
+
+<!-- Modal: Quick Add Skill to Profile -->
+{% if user.is_authenticated and user.is_student %}
+<div class="modal fade" id="quickAddSkillModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border">
+            <div class="modal-header border-bottom py-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-plus-circle text-primary me-2"></i>Add to My Skills</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'skills:add_skill' %}">
+                {% csrf_token %}
+                <input type="hidden" name="skill" id="quickSkillId">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Selected Skill:</label>
+                        <div class="fw-bold text-dark fs-6" id="quickSkillName"></div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-muted">Self-Reported Proficiency Level</label>
+                        <select name="proficiency" class="form-select">
+                            <option value="BEGINNER">Beginner (Basic Knowledge & Syntax)</option>
+                            <option value="INTERMEDIATE" selected>Intermediate (Hands-on Projects)</option>
+                            <option value="ADVANCED">Advanced (Production & Deployment Ready)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-3">Save to Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterSkills() {
+    const query = document.getElementById('skillSearchInput').value.toLowerCase().trim();
+    const categories = document.querySelectorAll('.category-block');
+    let totalVisible = 0;
+
+    categories.forEach(cat => {
+        let catHasVisibleSkill = false;
+        const skillItems = cat.querySelectorAll('.skill-item');
+
+        skillItems.forEach(item => {
+            const name = item.getAttribute('data-skill-name') || '';
+            const aliases = item.getAttribute('data-aliases') || '';
+            if (!query || name.includes(query) || aliases.includes(query)) {
+                item.classList.remove('d-none');
+                catHasVisibleSkill = true;
+                totalVisible++;
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+
+        if (catHasVisibleSkill) {
+            cat.classList.remove('d-none');
+        } else {
+            cat.classList.add('d-none');
+        }
+    });
+
+    const noMatch = document.getElementById('noMatchMessage');
+    if (totalVisible === 0) {
+        noMatch.classList.remove('d-none');
+    } else {
+        noMatch.classList.add('d-none');
+    }
+}
+
+function openQuickAdd(skillId, skillName) {
+    document.getElementById('quickSkillId').value = skillId;
+    document.getElementById('quickSkillName').innerText = skillName;
+    const modalEl = document.getElementById('quickAddSkillModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+</script>
 {% endblock %}

@@ -28,8 +28,14 @@
             <div class="col-md-4 text-md-end">
                 <a href="{% url 'internships:detail' posting.id %}" class="btn btn-outline-secondary btn-sm me-1">Role Specifications</a>
                 {% if user.is_student %}
-                    {% if eligibility.can_apply %}
-                        <a href="{% url 'internships:apply' posting.id %}" class="btn btn-primary btn-sm" onclick="return confirm('Submit application?')">Submit Application</a>
+                    {% if existing_application %}
+                        <span class="badge bg-light text-dark border py-2 px-3">
+                            <i class="bi bi-check-circle text-success me-1"></i>Applied ({{ existing_application.get_status_display }})
+                        </span>
+                    {% elif eligibility.can_apply %}
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#confirmApplicationModal">
+                            <i class="bi bi-send me-1"></i> Submit Application
+                        </button>
                     {% endif %}
                 {% endif %}
             </div>
@@ -45,7 +51,7 @@
                     <div class="metric-label">Calculated Skill Match</div>
                     <div class="d-flex align-items-baseline gap-2 mt-2 mb-3">
                         <span class="score-number {% if gap.match_percentage >= 70 %}text-success{% elif gap.match_percentage >= 50 %}text-primary{% else %}text-muted{% endif %}">
-                            {{ gap.match_percentage }}%
+                            {{ gap.match_percentage|floatformat:1 }}%
                         </span>
                         <span class="text-muted small">readiness</span>
                     </div>
@@ -71,7 +77,7 @@
                         <h6 class="fw-bold mb-1 text-dark">Eligibility Evaluation</h6>
                         <span class="text-muted small">Multi-factor academic and technical criteria check</span>
                     </div>
-                    <span class="badge {{ eligibility.badge_class }}">{{ eligibility.status|title }}</span>
+                    <span class="badge {{ eligibility.badge_class }}">{{ eligibility.status_display|default:eligibility.status }}</span>
                 </div>
 
                 <div class="list-group list-group-flush border-top">
@@ -174,41 +180,107 @@
             <span class="text-muted small">Curated references to help you acquire missing competencies</span>
         </div>
         <div class="card-body p-3">
-            {% for item in gap.missing_skills %}
-                <div class="p-3 border rounded bg-light mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <span class="fw-bold text-dark me-2">{{ item.skill.name }}</span>
-                            <span class="badge bg-white text-muted border">Target: {{ item.required_display }}</span>
-                            {% if item.is_mandatory %}
-                                <span class="badge bg-white text-danger border ms-1">Mandatory</span>
-                            {% endif %}
+            {% if gap.missing_count > 0 %}
+                {% for item in gap.missing_skills %}
+                    <div class="p-3 border rounded bg-light mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="fw-bold text-dark me-2">{{ item.skill.name }}</span>
+                                <span class="badge bg-white text-muted border">Target: {{ item.required_display }}</span>
+                                {% if item.is_mandatory %}
+                                    <span class="badge bg-white text-danger border ms-1">Mandatory</span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'skills:my_skills' %}" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size: 0.75rem;">
+                                Add to My Skills
+                            </a>
                         </div>
-                        <a href="{% url 'skills:my_skills' %}" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size: 0.75rem;">
-                            Add to My Skills
-                        </a>
-                    </div>
 
-                    <!-- Learning Resources -->
-                    <div class="mt-2 pt-2 border-top">
-                        <div class="small text-muted mb-2">Recommended documentation & tutorials:</div>
-                        <div class="d-flex flex-wrap gap-2">
-                            {% for res in item.resources %}
-                                <a href="{{ res.resource_url }}" target="_blank" class="badge bg-white text-dark border text-decoration-none py-1 px-2">
-                                    <i class="bi bi-link-45deg me-1"></i>{{ res.title }}
-                                </a>
-                            {% empty %}
-                                <span class="text-muted small">Refer to official documentation and open-source tutorials for {{ item.skill.name }}.</span>
-                            {% endfor %}
+                        <!-- Learning Resources -->
+                        <div class="mt-2 pt-2 border-top">
+                            <div class="small text-muted mb-2">Recommended documentation & tutorials:</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for res in item.resources %}
+                                    <a href="{{ res.resource_url }}" target="_blank" class="badge bg-white text-dark border text-decoration-none py-1 px-2">
+                                        <i class="bi bi-link-45deg me-1"></i>{{ res.title }}
+                                    </a>
+                                {% empty %}
+                                    <span class="text-muted small">Refer to official documentation and open-source tutorials for {{ item.skill.name }}.</span>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
+                {% endfor %}
+            {% elif gap.proficiency_gap_count > 0 %}
+                <div class="p-3 border rounded bg-light">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-arrow-up-circle fs-5 text-warning"></i>
+                        <strong class="text-dark">Proficiency Level Gaps Detected ({{ gap.proficiency_gap_count }})</strong>
+                    </div>
+                    <p class="small text-muted mb-0">
+                        You have mapped all <strong>{{ gap.total_required }}</strong> required skills in your profile! However, {{ gap.proficiency_gap_count }} skill(s) are currently marked at a lower proficiency level than the employer expects (e.g. Intermediate vs Advanced). Review the Matched Competencies table above to see which skills to level up.
+                    </p>
                 </div>
-            {% empty %}
+            {% else %}
                 <div class="p-4 text-center text-success small">
                     <i class="bi bi-check-circle fs-3 d-block mb-1"></i>
-                    <strong>No gaps detected.</strong> You meet all required competencies for this opening.
+                    <strong>No gaps detected.</strong> You meet or exceed all required skills and proficiency levels for this opening.
                 </div>
-            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirm Application Submission -->
+<div class="modal fade" id="confirmApplicationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border">
+            <div class="modal-header border-bottom py-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-send text-primary me-2"></i>Confirm Application Submission</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <div class="small text-muted">Role & Company:</div>
+                    <div class="fw-bold text-dark fs-6">{{ posting.title }}</div>
+                    <div class="text-muted small">{{ posting.company.company_name }} &bull; {{ posting.location }}</div>
+                </div>
+
+                <div class="p-3 border rounded bg-light mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">Candidate:</span>
+                        <span class="small fw-semibold text-dark">{{ student.user.get_full_name|default:student.user.username }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">Academic Info:</span>
+                        <span class="small text-dark">{{ student.branch }} (CGPA: {{ student.cgpa }})</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted">Calculated Skill Match:</span>
+                        <span class="badge bg-light text-dark border fw-bold">{{ gap.match_percentage|floatformat:1 }}%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">Resume Document:</span>
+                        {% if student.resume %}
+                            <a href="{{ student.resume.url }}" target="_blank" class="small text-decoration-none">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>Attached
+                            </a>
+                        {% else %}
+                            <span class="small text-warning">None uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <p class="small text-muted mb-0">
+                    Your profile, academic record, and skill match snapshot will be sent to the company recruiting team.
+                </p>
+            </div>
+            <div class="modal-footer border-top py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'internships:apply' posting.id %}" class="btn btn-primary btn-sm px-4">
+                    Confirm & Submit
+                </a>
+            </div>
         </div>
     </div>
 </div>

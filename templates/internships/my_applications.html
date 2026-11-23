@@ -23,37 +23,49 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for app in applications %}
+                    {% for item in applications %}
                         <tr>
                             <td>
-                                <div class="fw-bold text-dark">{{ app.posting.title }}</div>
-                                <div class="text-muted small">{{ app.posting.company.company_name }} • {{ app.posting.location }}</div>
+                                <div class="fw-bold text-dark">{{ item.app.posting.title }}</div>
+                                <div class="text-muted small">{{ item.app.posting.company.company_name }} • {{ item.app.posting.location }}</div>
                             </td>
-                            <td class="text-muted small">{{ app.applied_date|date:"d M Y" }}</td>
+                            <td class="text-muted small">{{ item.app.applied_date|date:"d M Y" }}</td>
                             <td>
-                                <span class="badge bg-light text-dark border">{{ app.match_percentage_at_apply }}%</span>
+                                <div>
+                                    <span class="badge bg-light text-dark border" title="Snapshot score when you applied">
+                                        {{ item.app.match_percentage_at_apply|floatformat:1 }}%
+                                    </span>
+                                    <div class="text-muted" style="font-size: 0.7rem;">at submission</div>
+                                    {% if item.current_match != item.app.match_percentage_at_apply %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.68rem;" title="Updated dynamically from your current skills">
+                                                Live: {{ item.current_match|floatformat:1 }}%
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </td>
                             <td>
-                                {% if app.status == 'INTERVIEW_SCHEDULED' %}
+                                {% if item.app.status == 'INTERVIEW_SCHEDULED' %}
                                     <span class="badge bg-success px-2 py-1"><i class="bi bi-camera-video me-1"></i>Interview Scheduled</span>
-                                {% elif app.status == 'SHORTLISTED' %}
+                                {% elif item.app.status == 'SHORTLISTED' %}
                                     <span class="badge bg-primary px-2 py-1">Shortlisted</span>
-                                {% elif app.status == 'SELECTED' %}
+                                {% elif item.app.status == 'SELECTED' %}
                                     <span class="badge bg-success px-2 py-1"><i class="bi bi-trophy-fill me-1"></i>Selected / Offered</span>
-                                {% elif app.status == 'REJECTED' %}
+                                {% elif item.app.status == 'REJECTED' %}
                                     <span class="badge bg-secondary px-2 py-1">Not Selected</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark px-2 py-1">{{ app.get_status_display }}</span>
+                                    <span class="badge bg-warning text-dark px-2 py-1">{{ item.app.get_status_display }}</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if app.status == 'INTERVIEW_SCHEDULED' and app.interview_date %}
+                                {% if item.app.status == 'INTERVIEW_SCHEDULED' and item.app.interview_date %}
                                     <div class="p-2 border rounded bg-success-subtle text-success-emphasis small">
-                                        <div class="fw-bold"><i class="bi bi-calendar-event me-1"></i>{{ app.interview_date|date:"D, d M Y - h:i A" }}</div>
-                                        <div>Mode: {{ app.get_interview_mode_display }}</div>
-                                        {% if app.interview_link_or_venue %}
+                                        <div class="fw-bold"><i class="bi bi-calendar-event me-1"></i>{{ item.app.interview_date|date:"D, d M Y - h:i A" }}</div>
+                                        <div>Mode: {{ item.app.get_interview_mode_display }}</div>
+                                        {% if item.app.interview_link_or_venue %}
                                             <div class="mt-1">
-                                                <a href="{{ app.interview_link_or_venue }}" target="_blank" class="btn btn-sm btn-success py-0 px-2" style="font-size: 0.75rem;">
+                                                <a href="{{ item.app.interview_link_or_venue }}" target="_blank" class="btn btn-sm btn-success py-0 px-2" style="font-size: 0.75rem;">
                                                     <i class="bi bi-box-arrow-up-right me-1"></i>Join / Venue
                                                 </a>
                                             </div>
@@ -64,8 +76,8 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if app.company_feedback %}
-                                    <span class="small text-secondary">{{ app.company_feedback }}</span>
+                                {% if item.app.company_feedback %}
+                                    <span class="small text-secondary">{{ item.app.company_feedback }}</span>
                                 {% else %}
                                     <span class="text-muted small">Pending review</span>
                                 {% endif %}
